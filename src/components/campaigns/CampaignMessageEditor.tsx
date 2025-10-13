@@ -1,13 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import type { CampaignMessage } from '@/types/campaign';
+import type { CampaignMessage, CampaignPlan } from '@/types/campaign';
 import { Mail, Linkedin, MessageSquare, AlertCircle, CheckCircle2, Download } from 'lucide-react';
+import ExportModal from './ExportModal';
 
 interface CampaignMessageEditorProps {
   messages: CampaignMessage[];
+  plan: CampaignPlan;
+  campaignTitle?: string;
+  intake?: any;
   onSave?: (messages: CampaignMessage[]) => void;
-  onExport?: () => void;
   compliance?: {
     violations: any[];
     warnings: any[];
@@ -17,12 +20,15 @@ interface CampaignMessageEditorProps {
 
 export default function CampaignMessageEditor({
   messages,
+  plan,
+  campaignTitle,
+  intake,
   onSave,
-  onExport,
   compliance
 }: CampaignMessageEditorProps) {
   const [editedMessages, setEditedMessages] = useState(messages);
   const [activeStep, setActiveStep] = useState(1);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   const activeMessage = editedMessages.find(m => m.step === activeStep);
 
@@ -262,17 +268,25 @@ export default function CampaignMessageEditor({
               Save Draft
             </button>
           )}
-          {onExport && (
-            <button
-              onClick={onExport}
-              className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:ring-4 focus:ring-purple-200 font-medium transition-all"
-            >
-              <Download className="w-5 h-5" />
-              Export Campaign
-            </button>
-          )}
+          <button
+            onClick={() => setShowExportModal(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:ring-4 focus:ring-purple-200 font-medium transition-all"
+          >
+            <Download className="w-5 h-5" />
+            Export Campaign
+          </button>
         </div>
       </div>
+
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        plan={plan}
+        messages={editedMessages}
+        campaignTitle={campaignTitle}
+        intake={intake}
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Megaphone, Plus, Loader2, Trash2, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/components/shared/PageHeader';
+import CampaignCardSkeleton from '@/components/campaigns/CampaignCardSkeleton';
 
 interface Campaign {
   id: string;
@@ -158,9 +159,13 @@ export default function CampaignsPage() {
 
       {/* Loading State */}
       {isLoading && (
-        <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4" />
-          <div className="text-lg font-medium text-gray-900">Loading campaigns...</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <CampaignCardSkeleton />
+          <CampaignCardSkeleton />
+          <CampaignCardSkeleton />
+          <CampaignCardSkeleton />
+          <CampaignCardSkeleton />
+          <CampaignCardSkeleton />
         </div>
       )}
 

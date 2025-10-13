@@ -7,6 +7,7 @@ import PageHeader from '@/components/shared/PageHeader';
 import CampaignIntakeForm from '@/components/campaigns/CampaignIntakeForm';
 import CampaignPlanPreview from '@/components/campaigns/CampaignPlanPreview';
 import CampaignMessageEditor from '@/components/campaigns/CampaignMessageEditor';
+import AIGenerationProgress from '@/components/campaigns/AIGenerationProgress';
 import type { CampaignIntake, CampaignPlan, CampaignMessage } from '@/types/campaign';
 
 type WorkflowStep = 'intake' | 'plan' | 'messages' | 'export';
@@ -135,41 +136,6 @@ export default function NewCampaignPage() {
     }
   };
 
-  // =====================================================
-  // Step 4: Export Campaign
-  // =====================================================
-  const handleExport = () => {
-    if (!messages || messages.length === 0 || !plan) {
-      toast.error('No campaign to export');
-      return;
-    }
-
-    // Create export data
-    const exportData = {
-      plan,
-      messages,
-      metadata: {
-        generatedAt: new Date().toISOString(),
-        vertical: intake?.vertical,
-        campaignType: plan.campaignType,
-      },
-    };
-
-    // Download as JSON
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-      type: 'application/json',
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `campaign-${Date.now()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    toast.success('Campaign exported!');
-  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -251,7 +217,7 @@ export default function NewCampaignPage() {
 
       {/* Current Step Content */}
       <div className="mt-8">
-        {currentStep === 'intake' && (
+        {currentStep === 'intake' && !isGeneratingPlan && (
           <div className="max-w-3xl mx-auto bg-white rounded-xl border-2 border-gray-200 p-8">
             <CampaignIntakeForm
               onSubmit={handleIntakeSubmit}
@@ -260,7 +226,11 @@ export default function NewCampaignPage() {
           </div>
         )}
 
-        {currentStep === 'plan' && plan && (
+        {currentStep === 'intake' && isGeneratingPlan && (
+          <AIGenerationProgress type="plan" />
+        )}
+
+        {currentStep === 'plan' && plan && !isGeneratingMessages && (
           <CampaignPlanPreview
             plan={plan}
             onEdit={() => setCurrentStep('intake')}
@@ -269,25 +239,19 @@ export default function NewCampaignPage() {
           />
         )}
 
-        {currentStep === 'messages' && messages.length > 0 && (
+        {currentStep === 'messages' && messages.length > 0 && plan && intake && (
           <CampaignMessageEditor
             messages={messages}
+            plan={plan}
+            campaignTitle={intake.request.substring(0, 50) + (intake.request.length > 50 ? '...' : '')}
+            intake={intake}
             onSave={handleSaveDraft}
-            onExport={handleExport}
             compliance={compliance}
           />
         )}
 
         {currentStep === 'messages' && messages.length === 0 && isGeneratingMessages && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4" />
-            <div className="text-lg font-medium text-gray-900">
-              Generating campaign messages...
-            </div>
-            <div className="text-sm text-gray-500 mt-2">
-              This may take 15-30 seconds
-            </div>
-          </div>
+          <AIGenerationProgress type="messages" />
         )}
       </div>
     </div>
