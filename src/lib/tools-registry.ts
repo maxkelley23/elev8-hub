@@ -1,4 +1,4 @@
-import { LucideIcon, Wallet, Megaphone, Video, FileText, Mail, BookOpen, Palette, Anchor, Ban, Database } from 'lucide-react';
+import { LucideIcon, Wallet, Megaphone, Video, FileText, Mail, BookOpen, Palette, Anchor, Ban, Database, FolderOpen } from 'lucide-react';
 
 export interface Tool {
   id: string;
@@ -24,6 +24,16 @@ export const TOOLS: Tool[] = [
     status: 'active',
   },
   {
+    id: 'campaign-library',
+    name: 'Campaign Library',
+    description: 'View and manage your saved campaigns',
+    icon: FolderOpen,
+    href: '/campaigns',
+    color: 'purple',
+    category: 'marketing',
+    status: 'active',
+  },
+  {
     id: 'campaigns',
     name: 'Campaign Generator',
     description: 'AI-powered email and LinkedIn campaign builder',
@@ -31,7 +41,7 @@ export const TOOLS: Tool[] = [
     href: '/campaigns/new',
     color: 'blue',
     category: 'marketing',
-    status: 'coming-soon',
+    status: 'active',
   },
 
   // Phase 2 Tools - Creative OS

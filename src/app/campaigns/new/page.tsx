@@ -95,13 +95,43 @@ export default function NewCampaignPage() {
   // Step 3: Save Campaign
   // =====================================================
   const handleSaveDraft = async (editedMessages: CampaignMessage[]) => {
+    if (!plan || !intake) {
+      toast.error('No campaign data to save');
+      return;
+    }
+
     try {
-      // TODO: Save to Supabase
+      // Generate a title from the intake request (first 50 chars)
+      const title = intake.request.substring(0, 50) + (intake.request.length > 50 ? '...' : '');
+
+      // Create the complete campaign object
+      const campaignData = {
+        title,
+        segment: intake.vertical || plan.vertical || 'general',
+        status: 'draft' as const,
+        intake,
+        plan,
+        messages: editedMessages,
+        validation: compliance,
+      };
+
+      const response = await fetch('/api/campaign/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(campaignData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to save campaign');
+      }
+
       setMessages(editedMessages);
-      toast.success('Campaign saved as draft');
+      toast.success('Campaign saved to database!');
     } catch (error) {
       console.error('Error saving campaign:', error);
-      toast.error('Failed to save campaign');
+      toast.error(error instanceof Error ? error.message : 'Failed to save campaign');
     }
   };
 
@@ -163,7 +193,7 @@ export default function NewCampaignPage() {
               1
             </div>
             <div className="ml-3 text-sm">
-              <div className="font-medium">Campaign Request</div>
+              <div className="font-medium text-gray-900">Campaign Request</div>
             </div>
           </div>
 
@@ -189,7 +219,7 @@ export default function NewCampaignPage() {
               )}
             </div>
             <div className="ml-3 text-sm">
-              <div className="font-medium">Review Plan</div>
+              <div className="font-medium text-gray-900">Review Plan</div>
             </div>
           </div>
 
@@ -213,7 +243,7 @@ export default function NewCampaignPage() {
               )}
             </div>
             <div className="ml-3 text-sm">
-              <div className="font-medium">Edit Messages</div>
+              <div className="font-medium text-gray-900">Edit Messages</div>
             </div>
           </div>
         </div>
