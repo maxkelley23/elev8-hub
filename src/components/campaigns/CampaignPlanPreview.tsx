@@ -69,7 +69,7 @@ export default function CampaignPlanPreview({
         <div>
           <div className="text-xs text-gray-500 uppercase mb-1">Cadence</div>
           <div className="font-semibold text-gray-900">
-            {plan.cadence?.charAt(0).toUpperCase() + plan.cadence?.slice(1) || 'Balanced'}
+            {plan.cadence ? plan.cadence.charAt(0).toUpperCase() + plan.cadence.slice(1) : 'Balanced'}
           </div>
         </div>
       </div>
