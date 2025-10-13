@@ -1,0 +1,26 @@
+{
+  "plan": {
+    "vertical": "hvac",
+    "campaignType": "cold-outreach",
+    "totalTouches": 7,
+    "totalDays": 21,
+    "cadence": "balanced",
+    "tone": "professional-friendly",
+    "steps": [
+      {"n": 1, "channel": "email", "delay": 0, "purpose": "initial-introduction", "reasoning": "Break through initial awareness barrier"},
+      {"n": 2, "channel": "linkedin", "delay": 4, "purpose": "deliver-value", "reasoning": "Leverage social platform for connection"},
+      {"n": 3, "channel": "email", "delay": 7, "purpose": "social-proof", "reasoning": "Demonstrate credibility with case studies"},
+      {"n": 4, "channel": "linkedin", "delay": 11, "purpose": "overcome-objection", "reasoning": "Address concerns about lead quality"},
+      {"n": 5, "channel": "email", "delay": 14, "purpose": "create-urgency", "reasoning": "Highlight time-sensitive opportunity"},
+      {"n": 6, "channel": "linkedin", "delay": 18, "purpose": "final-value", "reasoning": "Reinforce value proposition"},
+      {"n": 7, "channel": "email", "delay": 21, "purpose": "breakup", "reasoning": "Professional close"}
+    ]
+  },
+  "context": {
+    "companyInfo": {
+      "name": "Elev8 Marketing",
+      "focus": "B2B lead generation for service businesses"
+    },
+    "targetAudience": "HVAC business owners with $500K-$2M annual revenue in Northeast US"
+  }
+}

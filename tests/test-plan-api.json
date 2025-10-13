@@ -1,0 +1,9 @@
+{
+  "request": "I need a cold outreach campaign for HVAC companies to book more service calls",
+  "vertical": "hvac",
+  "goal": "book service calls",
+  "audience": "HVAC business owners with $500K-$2M annual revenue",
+  "numTouches": 7,
+  "cadence": "balanced",
+  "channels": ["email", "linkedin"]
+}
