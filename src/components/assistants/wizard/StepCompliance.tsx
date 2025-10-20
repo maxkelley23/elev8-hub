@@ -17,17 +17,26 @@ export default function StepCompliance({ data, onChange, errors }: StepComplianc
   const safetyGuidelines = data.compliance?.safetyGuidelines ?? '';
 
   const handleDisclosuresChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const lines = e.target.value.split('\n').filter(line => line.trim());
+    const lines = e.target.value
+      .split('\n')
+      .filter((line) => line.trim().length > 0)
+      .map((line) => line.trim());
     onChange('compliance.disclosures', lines);
   };
 
   const handleForbiddenTopicsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const lines = e.target.value.split('\n').filter(line => line.trim());
+    const lines = e.target.value
+      .split('\n')
+      .filter((line) => line.trim().length > 0)
+      .map((line) => line.trim());
     onChange('compliance.forbiddenTopics', lines);
   };
 
   const handleEscalationTriggersChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const lines = e.target.value.split('\n').filter(line => line.trim());
+    const lines = e.target.value
+      .split('\n')
+      .filter((line) => line.trim().length > 0)
+      .map((line) => line.trim());
     onChange('compliance.escalationTriggers', lines);
   };
 

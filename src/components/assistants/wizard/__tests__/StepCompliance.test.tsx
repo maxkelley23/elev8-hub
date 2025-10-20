@@ -101,12 +101,25 @@ describe('StepCompliance Component', () => {
       />
     );
 
+    const disclosuresInput = screen.getByLabelText(/disclosures/i) as HTMLTextAreaElement;
+    expect(disclosuresInput.id).toBeDefined();
+    expect(disclosuresInput.id).not.toBe('');
+
+    const forbiddenTopicsInput = screen.getByLabelText(/forbidden topics/i) as HTMLTextAreaElement;
+    expect(forbiddenTopicsInput.id).toBeDefined();
+    expect(forbiddenTopicsInput.id).not.toBe('');
+
+    const escalationTriggersInput = screen.getByLabelText(/escalation triggers/i) as HTMLTextAreaElement;
+    expect(escalationTriggersInput.id).toBeDefined();
+    expect(escalationTriggersInput.id).not.toBe('');
+
     const handoffInput = screen.getByLabelText(/handoff instructions/i) as HTMLTextAreaElement;
     expect(handoffInput.id).toBeDefined();
     expect(handoffInput.id).not.toBe('');
 
     const safetyInput = screen.getByLabelText(/safety guidelines/i) as HTMLTextAreaElement;
     expect(safetyInput.id).toBeDefined();
+    expect(safetyInput.id).not.toBe('');
   });
 
   it('should render with empty compliance data', () => {
