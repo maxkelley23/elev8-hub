@@ -1,5 +1,4 @@
-import { PageHeader } from '@/components/shared/PageHeader';
-import { Button } from '@/components/ui/button';
+import PageHeader from '@/components/shared/PageHeader';
 import { Phone } from 'lucide-react';
 import Link from 'next/link';
 
@@ -28,7 +27,9 @@ export default function AssistantsLibraryPage() {
           icon={Phone}
         />
         <Link href="/assistants/new">
-          <Button size="lg">Create Assistant</Button>
+          <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+            Create Assistant
+          </button>
         </Link>
       </div>
 
@@ -40,7 +41,9 @@ export default function AssistantsLibraryPage() {
             Create your first voice assistant to get started with AI-powered phone calls.
           </p>
           <Link href="/assistants/new">
-            <Button size="lg">Create Your First Assistant</Button>
+            <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+              Create Your First Assistant
+            </button>
           </Link>
         </div>
       ) : (

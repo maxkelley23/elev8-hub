@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import type { AssistantBuilderInput } from '../../lib/assistant/builders';
+import type { AssistantBuilderInput } from '@/lib/assistant/builders';
 
 interface StepPersonaProps {
   data: AssistantBuilderInput;

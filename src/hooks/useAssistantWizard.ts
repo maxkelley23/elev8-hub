@@ -3,7 +3,7 @@ import {
   AssistantBuilderInputSchema,
   defaultAssistantBuilderInput,
   type AssistantBuilderInput,
-} from '../lib/assistant/builders';
+} from '@/lib/assistant/builders';
 import { z } from 'zod';
 
 interface WizardStep {

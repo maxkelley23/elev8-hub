@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { buildAssistantPrompt } from '../../../lib/assistant/builders';
-import type { AssistantBuilderInput } from '../../../lib/assistant/builders';
+import { buildAssistantPrompt } from '@/lib/assistant/builders';
+import type { AssistantBuilderInput } from '@/lib/assistant/builders';
 
 interface StepPreviewProps {
   data: AssistantBuilderInput;

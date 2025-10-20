@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { PageHeader } from '@/components/shared/PageHeader';
+import PageHeader from '@/components/shared/PageHeader';
 import { Phone } from 'lucide-react';
 import AssistantWizard from '@/components/assistants/AssistantWizard';
 import { toast } from 'sonner';
