@@ -18,7 +18,12 @@ export type VapiVoiceConfig = z.infer<typeof VapiVoiceConfigSchema>;
 export const VapiModelConfigSchema = z.object({
   provider: z.enum(['openai', 'anthropic', 'groq', 'together-ai']),
   model: z.string(),
-  temperature: z.number().min(0).max(2).default(0.7),
+  temperature: z
+    .number()
+    .min(0)
+    .max(2)
+    .default(0.7)
+    .describe('Temperature: 0-2 range. OpenAI typically 0-1, others may support up to 2'),
   maxTokens: z.number().int().positive().optional(),
   systemPrompt: z.string().optional(),
 });
@@ -104,7 +109,7 @@ export const AssistantToolDBRowSchema = z.object({
   user_id: z.string().uuid(),
 
   name: z.string().min(1).max(100),
-  description: z.text().min(10).max(500),
+  description: z.string().min(10).max(500),
   category: z.enum(['scheduling', 'data-collection', 'transfer', 'custom']),
 
   // Function definition (JSON Schema)

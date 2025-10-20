@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(npm run test:*)",
+      "Bash(timeout 60 npm run test:*)"
     ],
     "deny": [],
     "ask": []

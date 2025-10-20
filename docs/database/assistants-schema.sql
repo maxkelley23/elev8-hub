@@ -6,6 +6,20 @@
 --
 -- Status: DOCUMENTED (not yet implemented in app)
 -- These tables should be created when persistence is ready.
+--
+-- PREREQUISITES:
+-- The following trigger function should exist in your database:
+-- ============================================================
+
+-- Helper function to auto-update updated_at timestamp
+CREATE OR REPLACE FUNCTION trigger_set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- ============================================================
 
 -- ============================================================
@@ -91,13 +105,17 @@ CREATE TABLE IF NOT EXISTS assistant_call_logs (
   -- Data
   transcript JSONB,                      -- Full conversation array
   summary TEXT,                          -- Generated summary
-  sentiment_score DECIMAL(3, 2),         -- -1.00 to 1.00
+  sentiment_score DECIMAL(3, 2) CHECK (sentiment_score >= -1.00 AND sentiment_score <= 1.00),  -- -1.00 to 1.00
 
   -- Cost tracking
   cost_usd DECIMAL(10, 4),
 
   -- Metadata
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  -- Constraints
+  CONSTRAINT valid_call_status CHECK (status IN ('completed', 'no-answer', 'busy', 'failed')),
+  CONSTRAINT call_end_after_start CHECK (ended_at IS NULL OR ended_at >= started_at)
 );
 
 -- Indexes for call log queries
@@ -132,7 +150,7 @@ CREATE TABLE IF NOT EXISTS assistant_tools (
 
   -- Usage tracking
   usage_count INTEGER NOT NULL DEFAULT 0,
-  success_rate DECIMAL(5, 2),            -- 0-100 percentage
+  success_rate DECIMAL(5, 2) CHECK (success_rate >= 0 AND success_rate <= 100),  -- 0-100 percentage
 
   -- Status
   is_active BOOLEAN DEFAULT TRUE,
@@ -142,7 +160,9 @@ CREATE TABLE IF NOT EXISTS assistant_tools (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
   -- Unique constraint per user
-  CONSTRAINT unique_tool_per_user UNIQUE (user_id, name)
+  CONSTRAINT unique_tool_per_user UNIQUE (user_id, name),
+  -- Category must be valid
+  CONSTRAINT valid_tool_category CHECK (category IN ('scheduling', 'data-collection', 'transfer', 'custom'))
 );
 
 -- Indexes
@@ -176,8 +196,18 @@ CREATE TABLE IF NOT EXISTS assistant_drafts (
   last_edited_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   expires_at TIMESTAMPTZ NOT NULL,       -- Auto-delete after 7 days
 
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  -- Constraints
+  CONSTRAINT valid_draft_step CHECK (current_step IN ('basics', 'capabilities', 'compliance', 'persona', 'knowledge', 'preview')),
+  CONSTRAINT draft_expires_after_created CHECK (expires_at > created_at)
 );
+
+-- Auto-update last_edited_at when draft changes
+CREATE TRIGGER set_drafts_updated_at
+  BEFORE UPDATE ON assistant_drafts
+  FOR EACH ROW
+  EXECUTE FUNCTION trigger_set_updated_at();
 
 -- Index for cleanup queries
 CREATE INDEX idx_drafts_expires ON assistant_drafts(expires_at);

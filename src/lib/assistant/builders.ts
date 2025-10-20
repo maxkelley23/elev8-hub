@@ -29,7 +29,7 @@ const PersonaSchema = z.object({
     .default('confident_warm'),
   energy: z.enum(['low', 'medium', 'high']).default('medium'),
   pacing: z.enum(['slow', 'moderate', 'fast']).default('moderate'),
-  language: z.array(z.string().min(2)).nonempty().default(['en-US']),
+  language: z.array(z.string().min(2)).min(1).default(['en-US']),
   fillerPreference: z.enum(['none', 'brief', 'detailed']).default('brief'),
 });
 
@@ -167,7 +167,9 @@ function buildKnowledgeSections(knowledge: AssistantBuilderInput['knowledgeBase'
     let faqsText = '';
     for (const faq of knowledge.faqs) {
       const faqLine = `- Q: ${faq.question}\n  A: ${faq.answer}\n`;
-      if (maxChars && currentLength + faqsText.length + faqLine.length > maxChars) {
+      const faqHeader = 'FAQ Reference:\n';
+      const proposedLength = currentLength + faqHeader.length + faqsText.length + faqLine.length + 4; // +4 for section separator
+      if (maxChars && proposedLength > maxChars) {
         break;
       }
       faqsText += faqLine;
@@ -175,7 +177,7 @@ function buildKnowledgeSections(knowledge: AssistantBuilderInput['knowledgeBase'
     if (faqsText) {
       const faqSection = `FAQ Reference:\n${faqsText}`;
       sections.push(faqSection);
-      currentLength += faqSection.length;
+      currentLength += faqSection.length + 4; // Add section separator
     }
   }
 
@@ -184,7 +186,9 @@ function buildKnowledgeSections(knowledge: AssistantBuilderInput['knowledgeBase'
     let objectionsText = '';
     for (const item of knowledge.objectionHandling) {
       const objLine = `- Objection: ${item.objection}\n  Response: ${item.response}\n`;
-      if (maxChars && currentLength + objectionsText.length + objLine.length > maxChars) {
+      const objHeader = 'Objection Handling:\n';
+      const proposedLength = currentLength + objHeader.length + objectionsText.length + objLine.length + 4;
+      if (maxChars && proposedLength > maxChars) {
         break;
       }
       objectionsText += objLine;
@@ -192,7 +196,7 @@ function buildKnowledgeSections(knowledge: AssistantBuilderInput['knowledgeBase'
     if (objectionsText) {
       const objSection = `Objection Handling:\n${objectionsText}`;
       sections.push(objSection);
-      currentLength += objSection.length;
+      currentLength += objSection.length + 4;
     }
   }
 
@@ -201,7 +205,9 @@ function buildKnowledgeSections(knowledge: AssistantBuilderInput['knowledgeBase'
     let policiesText = '';
     for (const policy of knowledge.policies) {
       const policyLine = `- ${policy}\n`;
-      if (maxChars && currentLength + policiesText.length + policyLine.length > maxChars) {
+      const policyHeader = 'Policies:\n';
+      const proposedLength = currentLength + policyHeader.length + policiesText.length + policyLine.length + 4;
+      if (maxChars && proposedLength > maxChars) {
         break;
       }
       policiesText += policyLine;
@@ -209,7 +215,7 @@ function buildKnowledgeSections(knowledge: AssistantBuilderInput['knowledgeBase'
     if (policiesText) {
       const policySection = `Policies:\n${policiesText}`;
       sections.push(policySection);
-      currentLength += policySection.length;
+      currentLength += policySection.length + 4;
     }
   }
 
@@ -260,11 +266,13 @@ export function buildAssistantPrompt(input: AssistantBuilderInput): string {
     buildEscalationSection(compliance.escalationTriggers, compliance.handoffInstructions),
   ];
 
+  const closingText = 'If you are uncertain, ask clarifying questions or offer to connect the caller with a human team member.';
   const corePrompt = coreSections.filter(Boolean).join('\n\n');
   let currentLength = corePrompt.length;
 
   // Calculate available space for knowledge base
-  const availableForKnowledge = PROMPT_TARGET_LENGTH - currentLength - 100; // Leave buffer for closing
+  // Account for: core prompt + closing text + section separators
+  const availableForKnowledge = PROMPT_TARGET_LENGTH - currentLength - closingText.length - 10; // 10 for separators
   const knowledgeText = buildKnowledgeSections(knowledgeBase, Math.max(500, availableForKnowledge));
 
   const sections: string[] = [...coreSections];
@@ -272,7 +280,7 @@ export function buildAssistantPrompt(input: AssistantBuilderInput): string {
     sections.push(knowledgeText);
   }
 
-  sections.push('If you are uncertain, ask clarifying questions or offer to connect the caller with a human team member.');
+  sections.push(closingText);
 
   let prompt = sections.filter(Boolean).join('\n\n').trim();
 
