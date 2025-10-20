@@ -16,17 +16,42 @@ const supabase = createClient(
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const now = new Date().toISOString();
+
+    // Ensure we always have IDs/timestamps in a consistent way
+    if (!body.id) {
+      body.id = crypto.randomUUID();
+      body.created_at = now;
+    } else {
+      // Preserve existing created_at when updating
+      if (!body.created_at) {
+        const { data: existingCampaign, error: fetchError } = await supabase
+          .from('campaigns')
+          .select('created_at')
+          .eq('id', body.id)
+          .single();
+
+        if (fetchError) {
+          console.error('Error fetching existing campaign for timestamps:', fetchError);
+        }
+
+        body.created_at = existingCampaign?.created_at || now;
+      }
+    }
+
+    body.updated_at = now;
+
+    // Clean up optional fields that might come through as null
+    if (body.validation === null) {
+      delete body.validation;
+    }
+    if (body.analysis === null) {
+      delete body.analysis;
+    }
 
     // Validate the campaign data
     let campaignData;
     try {
-      // If it's a new campaign without an id, generate one
-      if (!body.id) {
-        body.id = crypto.randomUUID();
-        body.created_at = new Date().toISOString();
-      }
-      body.updated_at = new Date().toISOString();
-
       campaignData = CompleteCampaignSchema.parse(body);
     } catch (error) {
       return NextResponse.json(
