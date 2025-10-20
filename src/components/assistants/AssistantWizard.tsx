@@ -9,6 +9,7 @@ import StepCapabilities from './wizard/StepCapabilities';
 import StepCompliance from './wizard/StepCompliance';
 import StepPersona from './wizard/StepPersona';
 import StepKnowledge from './wizard/StepKnowledge';
+import StepCallFlow from './wizard/StepCallFlow';
 import StepPreview from './wizard/StepPreview';
 
 interface AssistantWizardProps {
@@ -51,6 +52,13 @@ export default function AssistantWizard({ onSubmit, isSubmitting = false }: Assi
       ),
       knowledge: (
         <StepKnowledge
+          data={wizard.formData}
+          onChange={wizard.updateField}
+          errors={wizard.errors}
+        />
+      ),
+      callflow: (
+        <StepCallFlow
           data={wizard.formData}
           onChange={wizard.updateField}
           errors={wizard.errors}

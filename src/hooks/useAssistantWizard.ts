@@ -22,6 +22,7 @@ const WIZARD_STEPS: WizardStep[] = [
   { id: 'compliance', label: 'Compliance', completed: false },
   { id: 'persona', label: 'Persona', completed: false },
   { id: 'knowledge', label: 'Knowledge', completed: false },
+  { id: 'callflow', label: 'Call Flow', completed: false },
   { id: 'preview', label: 'Preview', completed: false },
 ];
 

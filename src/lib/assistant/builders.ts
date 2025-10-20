@@ -71,6 +71,12 @@ const CapabilitiesSchema = z.object({
   collectEmail: z.boolean().default(true),
 });
 
+const CallFlowSchema = z.object({
+  type: z.enum(['structured', 'freeform']).default('structured'),
+  outline: z.array(z.string()).default([]),
+  description: z.string().default(''),
+});
+
 export const AssistantBuilderInputSchema = z.object({
   company: CompanySchema,
   objective: z.string().default('book_qualified_meeting'),
@@ -78,6 +84,7 @@ export const AssistantBuilderInputSchema = z.object({
   compliance: ComplianceSchema,
   capabilities: CapabilitiesSchema,
   knowledgeBase: KnowledgeBaseSchema,
+  callFlow: CallFlowSchema.optional(),
   operations: z
     .object({
       hoursOfOperation: z.string().default('24/7'),
@@ -119,6 +126,11 @@ export const defaultAssistantBuilderInput: AssistantBuilderInput = {
     faqs: [],
     objectionHandling: [],
     policies: [],
+  },
+  callFlow: {
+    type: 'structured',
+    outline: [],
+    description: '',
   },
   operations: {
     hoursOfOperation: '24/7',
@@ -226,7 +238,7 @@ const PROMPT_MAX_LENGTH = 8000;
 const PROMPT_TARGET_LENGTH = 7500; // Aim for this to leave buffer
 
 export function buildAssistantPrompt(input: AssistantBuilderInput): string {
-  const { company, objective, persona, compliance, capabilities, knowledgeBase } = input;
+  const { company, objective, persona, compliance, capabilities, knowledgeBase, callFlow } = input;
 
   const companyName = company.name || 'Our team';
   const industry = company.industry ? ` serving the ${company.industry} space` : '';
@@ -239,7 +251,7 @@ export function buildAssistantPrompt(input: AssistantBuilderInput): string {
     supportive_compassionate: 'supportive and compassionate',
   };
 
-  const conversationFlow = [
+  let conversationFlow = [
     'Greet the caller, introduce yourself as an AI assistant, and confirm consent if required.',
     "Confirm the caller's name and relation to the business (if unknown).",
     `Clarify their needs and determine if they align with the objective: ${formatObjective(objective)}.`,
@@ -253,6 +265,16 @@ export function buildAssistantPrompt(input: AssistantBuilderInput): string {
     'Close courteously and provide a path to reach a human if needed.',
   ];
 
+  // Override with custom call flow if provided
+  if (callFlow?.type === 'structured' && callFlow.outline && callFlow.outline.length > 0) {
+    conversationFlow = callFlow.outline;
+  }
+
+  const flowTypeNote =
+    callFlow?.type === 'freeform'
+      ? 'Call Flow: You have flexibility to follow caller needs naturally, using these directions as guidelines rather than strict steps.'
+      : '';
+
   const coreSections: string[] = [
     `Role: You are ${companyName}'s voice assistant${industry}.`,
     valueProp,
@@ -262,6 +284,7 @@ export function buildAssistantPrompt(input: AssistantBuilderInput): string {
     buildDisclosuresSection(compliance.disclosures),
     `Safety Guidelines:\n- ${compliance.safetyGuidelines}`,
     buildForbiddenTopicsSection(compliance.forbiddenTopics),
+    flowTypeNote,
     `Conversation Flow:\n${conversationFlow.map((step, index) => `${index + 1}. ${step}`).join('\n')}`,
     buildEscalationSection(compliance.escalationTriggers, compliance.handoffInstructions),
   ];

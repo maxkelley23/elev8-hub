@@ -2,6 +2,7 @@
 
 import React from 'react';
 import type { AssistantBuilderInput } from '@/lib/assistant/builders';
+import AIEnhanceButton from '@/components/shared/AIEnhanceButton';
 
 interface StepBasicsProps {
   data: AssistantBuilderInput;
