@@ -68,72 +68,97 @@ export default function StepCompliance({ data, onChange, errors }: StepComplianc
   };
 
   return (
-    <div>
-      {/* Disclosures */}
+    <div className="space-y-8">
       <div>
-        <label htmlFor="compliance-disclosures">Disclosures</label>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Compliance & Safety</h2>
+        <p className="text-gray-600 mb-6">Define guardrails, disclosures, and safety guidelines for your assistant.</p>
+      </div>
+
+      {/* Disclosures */}
+      <div className="flex flex-col">
+        <label htmlFor="compliance-disclosures" className="text-sm font-semibold text-gray-700 mb-2">
+          Required Disclosures
+        </label>
         <textarea
           id="compliance-disclosures"
           value={disclosures}
           onChange={handleDisclosuresChange}
-          placeholder="Enter one disclosure per line"
+          placeholder="Enter one disclosure per line (e.g., 'This is an AI assistant')"
+          rows={3}
+          className="px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all duration-200 resize-none"
         />
-        <div className="text-gray-500 text-sm">
-          One disclosure per line
-        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          One disclosure per line - statements that must be shared with callers
+        </p>
         {renderErrorMessages('compliance.disclosures')}
       </div>
 
       {/* Forbidden Topics */}
-      <div>
-        <label htmlFor="compliance-forbidden-topics">Forbidden Topics</label>
+      <div className="flex flex-col">
+        <label htmlFor="compliance-forbidden-topics" className="text-sm font-semibold text-gray-700 mb-2">
+          Forbidden Topics
+        </label>
         <textarea
           id="compliance-forbidden-topics"
           value={forbiddenTopics}
           onChange={handleForbiddenTopicsChange}
-          placeholder="Enter one topic per line"
+          placeholder="Enter one topic per line (e.g., 'Legal advice', 'Medical diagnosis')"
+          rows={3}
+          className="px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all duration-200 resize-none"
         />
-        <div className="text-gray-500 text-sm">
-          Topics to avoid discussing (one per line)
-        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          Topics the assistant should decline to discuss
+        </p>
         {renderErrorMessages('compliance.forbiddenTopics')}
       </div>
 
       {/* Escalation Triggers */}
-      <div>
-        <label htmlFor="compliance-escalation-triggers">Escalation Triggers</label>
+      <div className="flex flex-col">
+        <label htmlFor="compliance-escalation-triggers" className="text-sm font-semibold text-gray-700 mb-2">
+          Escalation Triggers
+        </label>
         <textarea
           id="compliance-escalation-triggers"
           value={escalationTriggers}
           onChange={handleEscalationTriggersChange}
-          placeholder="Enter one trigger per line"
+          placeholder="Enter one trigger per line (e.g., 'Customer asks to speak to human', 'Complaint detected')"
+          rows={3}
+          className="px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all duration-200 resize-none"
         />
-        <div className="text-gray-500 text-sm">
-          Situations requiring human intervention (one per line)
-        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          Situations that should trigger escalation to a human
+        </p>
         {renderErrorMessages('compliance.escalationTriggers')}
       </div>
 
       {/* Handoff Instructions */}
-      <div>
-        <label htmlFor="compliance-handoff">Handoff Instructions</label>
+      <div className="flex flex-col">
+        <label htmlFor="compliance-handoff" className="text-sm font-semibold text-gray-700 mb-2">
+          Handoff Instructions
+        </label>
         <textarea
           id="compliance-handoff"
           value={handoffInstructions}
           onChange={handleHandoffChange}
-          placeholder="Instructions for handing off to a human agent"
+          placeholder="How should the assistant hand off to a human agent? Be specific about tone and context."
+          rows={3}
+          className="px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all duration-200 resize-none"
         />
         {renderErrorMessages('compliance.handoffInstructions')}
       </div>
 
       {/* Safety Guidelines */}
-      <div>
-        <label htmlFor="compliance-safety">Safety Guidelines</label>
+      <div className="flex flex-col">
+        <label htmlFor="compliance-safety" className="text-sm font-semibold text-gray-700 mb-2">
+          Safety Guidelines
+        </label>
         <textarea
           id="compliance-safety"
           value={safetyGuidelines}
           onChange={handleSafetyChange}
-          placeholder="Safety and professionalism guidelines"
+          placeholder="General safety and professionalism guidelines for your assistant behavior"
+          rows={4}
+          className="px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all duration-200 resize-none"
         />
         {renderErrorMessages('compliance.safetyGuidelines')}
       </div>

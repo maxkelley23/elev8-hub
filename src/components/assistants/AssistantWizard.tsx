@@ -77,36 +77,64 @@ export default function AssistantWizard({ onSubmit, isSubmitting = false }: Assi
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1>AI Assistant Configuration Wizard</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="max-w-5xl mx-auto px-4 py-12">
+        {/* Header */}
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Build Your Voice Assistant</h1>
+          <p className="text-lg text-gray-600">Configure your AI voice assistant step by step. Each section builds on the last to create a complete assistant configuration.</p>
+        </div>
 
-      <div className="mt-8">
-        <WizardStepper
-          steps={wizard.steps}
-          currentStep={wizard.currentStep}
-          onStepChange={wizard.goToStep}
-        />
+        {/* Stepper */}
+        <div className="mb-12 bg-white rounded-xl shadow-sm p-8">
+          <WizardStepper
+            steps={wizard.steps}
+            currentStep={wizard.currentStep}
+            onStepChange={wizard.goToStep}
+          />
+        </div>
+
+        {/* Step Content */}
+        <div className="bg-white rounded-xl shadow-sm p-8 mb-8 min-h-[500px] animate-fadeIn">
+          {stepComponents[wizard.currentStep]}
+        </div>
+
+        {/* Footer with CTA */}
+        <div className="flex gap-4 justify-between items-center">
+          <div className="text-sm text-gray-600">
+            Step {wizard.steps.findIndex(s => s.id === wizard.currentStep) + 1} of {wizard.steps.length}
+          </div>
+          {wizard.currentStep === 'preview' && (
+            <button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className={`px-8 py-3 rounded-lg font-semibold transition-all duration-200 transform ${
+                isSubmitting
+                  ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 hover:shadow-lg hover:scale-105'
+              }`}
+            >
+              {isSubmitting ? 'Creating Assistant...' : '✓ Create Assistant'}
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="mt-8 min-h-96">
-        {stepComponents[wizard.currentStep]}
-      </div>
-
-      <div className="mt-8 flex gap-4 justify-end">
-        {wizard.currentStep === 'preview' && (
-          <button
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className={`px-8 py-3 rounded font-medium transition-colors ${
-              isSubmitting
-                ? 'bg-gray-400 text-white cursor-not-allowed'
-                : 'bg-green-600 text-white hover:bg-green-700'
-            }`}
-          >
-            {isSubmitting ? 'Creating...' : 'Create Assistant'}
-          </button>
-        )}
-      </div>
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
