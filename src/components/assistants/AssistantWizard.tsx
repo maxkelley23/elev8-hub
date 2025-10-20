@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import type { AssistantBuilderInput } from '../../lib/assistant/builders';
 import { useAssistantWizard } from '../../hooks/useAssistantWizard';
 import WizardStepper from './wizard/WizardStepper';
 import StepBasics from './wizard/StepBasics';
@@ -10,7 +11,12 @@ import StepPersona from './wizard/StepPersona';
 import StepKnowledge from './wizard/StepKnowledge';
 import StepPreview from './wizard/StepPreview';
 
-export default function AssistantWizard() {
+interface AssistantWizardProps {
+  onSubmit?: (data: AssistantBuilderInput) => Promise<void>;
+  isSubmitting?: boolean;
+}
+
+export default function AssistantWizard({ onSubmit, isSubmitting = false }: AssistantWizardProps) {
   const wizard = useAssistantWizard();
 
   const stepComponents: Record<string, React.ReactNode> = useMemo(
@@ -61,13 +67,12 @@ export default function AssistantWizard() {
     [wizard.formData, wizard.updateField, wizard.errors]
   );
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const result = wizard.submit();
-    if (result.success) {
-      console.log('Wizard completed with data:', result.data);
-      // TODO: Handle successful submission (API call, redirect, etc.)
-    } else {
-      console.log('Validation errors:', wizard.errors);
+    if (result.success && result.data) {
+      if (onSubmit) {
+        await onSubmit(result.data);
+      }
     }
   };
 
@@ -91,9 +96,14 @@ export default function AssistantWizard() {
         {wizard.currentStep === 'preview' && (
           <button
             onClick={handleSubmit}
-            className="px-8 py-3 bg-green-600 text-white rounded font-medium hover:bg-green-700"
+            disabled={isSubmitting}
+            className={`px-8 py-3 rounded font-medium transition-colors ${
+              isSubmitting
+                ? 'bg-gray-400 text-white cursor-not-allowed'
+                : 'bg-green-600 text-white hover:bg-green-700'
+            }`}
           >
-            Create Assistant
+            {isSubmitting ? 'Creating...' : 'Create Assistant'}
           </button>
         )}
       </div>

@@ -1,7 +1,11 @@
 'use client';
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Phone } from 'lucide-react';
+import AssistantWizard from '@/components/assistants/AssistantWizard';
+import { toast } from 'sonner';
 
 /**
  * Voice Assistant Builder Wizard Page
@@ -22,8 +26,33 @@ import { Phone } from 'lucide-react';
  * - Auto-saves to localStorage for draft persistence
  */
 export default function AssistantWizardPage() {
-  // TODO: Initialize useAssistantWizard hook
-  // const wizard = useAssistantWizard();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleWizardSubmit = async (data: any) => {
+    setIsSubmitting(true);
+    try {
+      // TODO: Replace with actual API call
+      const response = await fetch('/api/assistants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create assistant');
+      }
+
+      const result = await response.json();
+      toast.success('Assistant created successfully!');
+      router.push(`/assistants/${result.id}`);
+    } catch (error) {
+      console.error('Error creating assistant:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to create assistant');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -34,41 +63,7 @@ export default function AssistantWizardPage() {
       />
 
       <div className="mt-8">
-        {/* TODO: Render WizardStepper component */}
-        {/* <WizardStepper currentStep={wizard.currentStep} completedSteps={wizard.completedSteps} /> */}
-
-        <div className="mt-8 space-y-6">
-          {/* TODO: Conditional rendering based on currentStep
-          {wizard.currentStep === 'basics' && <StepBasics {...stepProps} />}
-          {wizard.currentStep === 'capabilities' && <StepCapabilities {...stepProps} />}
-          {wizard.currentStep === 'compliance' && <StepCompliance {...stepProps} />}
-          {wizard.currentStep === 'persona' && <StepPersona {...stepProps} />}
-          {wizard.currentStep === 'knowledge' && <StepKnowledge {...stepProps} />}
-          {wizard.currentStep === 'preview' && <StepPreview {...stepProps} />}
-          */}
-
-          {/* TODO: Step navigation buttons */}
-          {/* <div className="flex justify-between">
-            <Button
-              onClick={wizard.goToPreviousStep}
-              disabled={wizard.currentStep === 'basics'}
-            >
-              Previous
-            </Button>
-            <Button
-              onClick={wizard.goToNextStep}
-              disabled={wizard.currentStep === 'preview'}
-            >
-              Next
-            </Button>
-          </div> */}
-        </div>
-
-        {/* TODO: Right sidebar with live preview */}
-        {/* <div className="mt-8 lg:mt-0">
-          <PromptPreview prompt={wizard.livePreview.prompt} />
-          <ConfigPreview config={wizard.livePreview.config} />
-        </div> */}
+        <AssistantWizard onSubmit={handleWizardSubmit} isSubmitting={isSubmitting} />
       </div>
     </div>
   );
