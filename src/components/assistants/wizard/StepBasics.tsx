@@ -115,11 +115,16 @@ export default function StepBasics({ data, onChange, errors }: StepBasicsProps) 
           onChange={handleValuePropChange}
           className="px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all duration-200"
         />
-        <div className="flex justify-between items-center mt-2">
+        <div className="flex justify-between items-center mt-2 mb-2">
           <span className={`text-xs font-medium ${charCount > 200 ? 'text-orange-600' : 'text-gray-500'}`}>
             {charCount} characters
           </span>
         </div>
+        <AIEnhanceButton
+          text={valueProposition}
+          onEnhance={(enhanced) => onChange('company.valueProposition', enhanced)}
+          context="description"
+        />
         {renderErrorMessages('company.valueProposition') && (
           <div className="mt-2 space-y-1">
             {renderErrorMessages('company.valueProposition')}
@@ -139,6 +144,11 @@ export default function StepBasics({ data, onChange, errors }: StepBasicsProps) 
           onChange={handleMissionChange}
           rows={4}
           className="px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all duration-200 resize-none"
+        />
+        <AIEnhanceButton
+          text={mission}
+          onEnhance={(enhanced) => onChange('company.mission', enhanced)}
+          context="mission"
         />
         {renderErrorMessages('company.mission') && (
           <div className="mt-2 space-y-1">
