@@ -19,9 +19,11 @@ export default function AIEnhanceButton({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const shouldShow = isMultiSentence(text);
+  const canEnhance = isMultiSentence(text) && text.trim().length > 0;
 
   const handleEnhance = async () => {
+    if (!canEnhance || !text.trim()) return;
+
     setIsLoading(true);
     setError(null);
 
@@ -45,7 +47,7 @@ export default function AIEnhanceButton({
     }
   };
 
-  if (!shouldShow) {
+  if (!text.trim()) {
     return null;
   }
 
@@ -54,8 +56,13 @@ export default function AIEnhanceButton({
       <button
         type="button"
         onClick={handleEnhance}
-        disabled={isLoading || disabled}
-        className="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 hover:from-purple-200 hover:to-pink-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium flex items-center gap-1"
+        disabled={isLoading || disabled || !canEnhance}
+        title={canEnhance ? 'Improve verbose text with AI' : 'Text is already concise or too short to improve'}
+        className={`text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1 transition-all duration-200 ${
+          canEnhance
+            ? 'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 hover:from-purple-200 hover:to-pink-200 disabled:opacity-50 disabled:cursor-not-allowed'
+            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+        }`}
       >
         {isLoading ? (
           <>
