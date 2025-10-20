@@ -163,13 +163,15 @@ describe('Assistant builder utilities', () => {
       ).toThrow();
     });
 
-    it('should reject invalid objective', () => {
-      expect(() =>
-        AssistantBuilderInputSchema.parse({
-          ...defaultAssistantBuilderInput,
-          objective: 'invalid_objective_name',
-        })
-      ).toThrow();
+    it('should allow flexible objective strings for business domain extensibility', () => {
+      // Note: Objective is intentionally flexible (z.string()) to allow
+      // business users to add new objectives without code changes.
+      // Validation happens at the UI/business logic level, not schema.
+      const input = AssistantBuilderInputSchema.parse({
+        ...defaultAssistantBuilderInput,
+        objective: 'custom_objective_value',
+      });
+      expect(input.objective).toBe('custom_objective_value');
     });
   });
 
