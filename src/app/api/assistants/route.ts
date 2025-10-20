@@ -5,15 +5,18 @@ import {
   buildVapiAssistantConfig,
 } from '@/lib/assistant/builders';
 import { z } from 'zod';
-import { randomUUID } from 'crypto';
+import { createClient } from '@supabase/supabase-js';
 
 /**
  * POST /api/assistants
- * Creates a new voice assistant configuration
+ * Creates a new voice assistant configuration and saves payload to database
  *
- * NOTE: This endpoint validates and generates the Vapi configuration
- * but does NOT push to Vapi yet. When ready, uncomment the Vapi client
- * import and call createVapiAssistant(vapiConfig) to push to production.
+ * Process:
+ * 1. Validates input against Zod schema
+ * 2. Generates system prompt for AI assistant
+ * 3. Builds complete Vapi configuration payload
+ * 4. Saves payload to Supabase 'assistant_payloads' table
+ * 5. Returns created assistant with ID
  */
 export async function POST(request: NextRequest) {
   try {
@@ -28,39 +31,50 @@ export async function POST(request: NextRequest) {
     // Build the Vapi configuration
     const vapiConfig = buildVapiAssistantConfig(validatedInput, prompt);
 
-    // TODO: When ready to push to Vapi, uncomment the following:
-    // const vapiResponse = await createVapiAssistant(vapiConfig);
-    // return NextResponse.json({ success: true, id: vapiResponse.id, ... }, { status: 201 });
+    // Save payload to Supabase
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    // For now, generate a mock response
-    const mockId = randomUUID();
-    const assistantName = validatedInput.company.name
-      ? `${validatedInput.company.name} Voice Assistant`
-      : 'Customer Voice Assistant';
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Supabase credentials not configured');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Create record in assistant_payloads table
+    const { data, error } = await supabase
+      .from('assistant_payloads')
+      .insert({
+        name: validatedInput.company.name || 'Untitled Assistant',
+        config_input: validatedInput,
+        system_prompt: prompt,
+        vapi_payload: vapiConfig,
+        created_at: new Date().toISOString(),
+        status: 'created',
+      })
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Database error: ${error.message}`);
+    }
 
     return NextResponse.json(
       {
         success: true,
-        id: mockId,
-        name: assistantName,
-        message: 'Assistant configuration created successfully (ready for Vapi)',
-        config: {
-          name: assistantName,
-          prompt: prompt.substring(0, 100) + '...',
-          language: validatedInput.persona.language[0],
-          objective: validatedInput.objective,
+        id: data.id,
+        name: data.name,
+        message: 'Assistant payload created and saved successfully',
+        payload: {
+          configInput: validatedInput,
+          systemPrompt: prompt.substring(0, 200) + '...',
+          vapiPayload: vapiConfig,
         },
-        notes: [
-          'Configuration has been validated against Zod schema',
-          'System prompt has been generated',
-          'Vapi configuration has been built',
-          'Ready to push to Vapi when VAPI_API_KEY is configured',
-        ],
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error('Error validating assistant configuration:', error);
+    console.error('Error creating assistant payload:', error);
 
     // Handle validation errors
     if (error instanceof z.ZodError) {
@@ -82,7 +96,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to validate assistant configuration',
+        error: 'Failed to create assistant payload',
         message,
       },
       { status: 500 }
