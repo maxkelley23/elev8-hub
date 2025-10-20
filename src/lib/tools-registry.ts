@@ -1,4 +1,4 @@
-import { LucideIcon, Wallet, Megaphone, Video, FileText, Mail, BookOpen, Palette, Anchor, Ban, Database, FolderOpen } from 'lucide-react';
+import { LucideIcon, Wallet, Megaphone, Video, FileText, Mail, BookOpen, Palette, Anchor, Ban, Database, FolderOpen, Phone } from 'lucide-react';
 
 export interface Tool {
   id: string;
@@ -41,6 +41,16 @@ export const TOOLS: Tool[] = [
     href: '/campaigns/new',
     color: 'blue',
     category: 'marketing',
+    status: 'active',
+  },
+  {
+    id: 'voice-assistant-builder',
+    name: 'Voice Assistant Builder',
+    description: 'Build AI voice assistants for Vapi with compliance and persona controls',
+    icon: Phone,
+    href: '/assistants/new',
+    color: 'teal',
+    category: 'productivity',
     status: 'active',
   },
 
