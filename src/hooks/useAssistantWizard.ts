@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { AssistantBuilderInput, AssistantWizardStep, defaultAssistantBuilderInput } from '@/lib/assistant/builders';
 import { buildAssistantPrompt, buildVapiAssistantConfig, AssistantBuilderInputSchema } from '@/lib/assistant/builders';
 import { VapiAssistantCreatePayload } from '@/types/assistant';
@@ -8,11 +8,42 @@ import { VapiAssistantCreatePayload } from '@/types/assistant';
 const STEP_ORDER: AssistantWizardStep[] = ['basics', 'capabilities', 'compliance', 'persona', 'knowledge', 'preview'];
 const STORAGE_KEY = 'assistant-wizard-draft';
 
+/**
+ * Creates a valid empty Vapi config when validation fails
+ * Prevents unsafe type casting of empty objects
+ */
+function createEmptyVapiConfig(): VapiAssistantCreatePayload {
+  return {
+    assistant: {
+      name: 'Incomplete Configuration',
+      firstMessage: '',
+      model: {
+        provider: 'openai',
+        model: 'gpt-4o-mini',
+        temperature: 0.6,
+      },
+      voice: {
+        provider: 'vapi',
+        voiceId: 'alloy',
+      },
+      transcriber: {
+        provider: 'deepgram',
+        model: 'nova-2',
+      },
+      functions: [],
+      silenceTimeoutSeconds: 15,
+      maxDurationSeconds: 600,
+    },
+    metadata: {},
+  };
+}
+
 export interface AssistantWizardState {
   currentStep: AssistantWizardStep;
   completedSteps: AssistantWizardStep[];
   formData: AssistantBuilderInput;
   isDirty: boolean;
+  isHydrated: boolean; // Indicates if localStorage has been loaded
   validationErrors: Record<string, string[]>;
   livePreview: {
     prompt: string;
@@ -38,27 +69,51 @@ export interface AssistantWizardActions {
   getProgressPercentage: () => number;
 }
 
+/**
+ * useAssistantWizard - Complete state management for the 6-step wizard
+ *
+ * Features:
+ * - Form state with nested field updates via dot notation
+ * - Per-step validation with error tracking
+ * - localStorage persistence for draft auto-save
+ * - Live preview generation (prompt + Vapi config) via useMemo
+ * - Step navigation with completion tracking
+ *
+ * Hydration:
+ * - isHydrated flag indicates localStorage has loaded
+ * - Prevents render flash when loading saved draft
+ *
+ * Note: For lazy initialization optimization, remove localStorage loading
+ * from useEffect and defer to first field update instead.
+ */
 export function useAssistantWizard(): AssistantWizardState & AssistantWizardActions {
   // Load initial state from localStorage or use defaults
   const [currentStep, setCurrentStep] = useState<AssistantWizardStep>('basics');
   const [completedSteps, setCompletedSteps] = useState<AssistantWizardStep[]>([]);
   const [formData, setFormData] = useState<AssistantBuilderInput>(defaultAssistantBuilderInput);
   const [isDirty, setIsDirty] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false); // Track if localStorage loaded
   const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
+  const hasLoadedDraft = useRef(false); // Prevent multiple loads
 
-  // Load draft from localStorage on mount
+  // Load draft from localStorage on mount (once only)
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
+    if (hasLoadedDraft.current) return; // Prevent double-loading
+    hasLoadedDraft.current = true;
+
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
         const draft = JSON.parse(saved);
         setCurrentStep(draft.currentStep || 'basics');
         setCompletedSteps(draft.completedSteps || []);
         setFormData(draft.formData || defaultAssistantBuilderInput);
         setIsDirty(draft.isDirty || false);
-      } catch (err) {
-        console.error('Failed to load draft:', err);
       }
+    } catch (err) {
+      console.error('Failed to load draft:', err);
+    } finally {
+      setIsHydrated(true); // Mark as ready, even if load failed
     }
   }, []);
 
@@ -83,54 +138,108 @@ export function useAssistantWizard(): AssistantWizardState & AssistantWizardActi
       const config = buildVapiAssistantConfig(validated, prompt);
       return { prompt, config };
     } catch (err) {
-      // If validation fails, return empty preview
-      return { prompt: '', config: {} as VapiAssistantCreatePayload };
+      // If validation fails, return safe empty preview
+      return { prompt: '', config: createEmptyVapiConfig() };
     }
   }, [formData]);
 
   // Update a field using dot notation (e.g., 'company.name')
+  // Safely creates intermediate objects if they don't exist
   const updateField = useCallback((path: string, value: any) => {
     setFormData((prev) => {
       const keys = path.split('.');
       const newData = structuredClone(prev);
       let current: any = newData;
 
+      // Safely traverse/create path
       for (let i = 0; i < keys.length - 1; i++) {
-        current = current[keys[i]];
+        const key = keys[i];
+        // Create intermediate object if it doesn't exist or is null/undefined
+        if (!(key in current) || current[key] === null || current[key] === undefined) {
+          current[key] = {};
+        }
+        current = current[key];
       }
-      current[keys[keys.length - 1]] = value;
 
+      // Set final value
+      current[keys[keys.length - 1]] = value;
       return newData;
     });
     setIsDirty(true);
   }, []);
 
-  // Validate a specific step
+  // Validate a specific step - implements validation for all 6 steps
   const validateStep = useCallback(
     (step: AssistantWizardStep): boolean => {
+      const errors: string[] = [];
+
       try {
-        // Per-step validation logic
         if (step === 'basics') {
-          const { company } = formData;
-          if (!company.name || company.name.trim().length < 1) {
-            setValidationErrors({ basics: ['Company name is required'] });
-            return false;
+          if (!formData.company.name || formData.company.name.trim().length === 0) {
+            errors.push('Company name is required');
           }
         }
 
-        // Add more step validations as needed
-        setValidationErrors((prev) => {
-          const next = { ...prev };
-          delete next[step];
-          return next;
-        });
-        return true;
+        if (step === 'capabilities') {
+          // At least one tool or capability should be defined
+          if (
+            formData.capabilities.tools.length === 0 &&
+            !formData.capabilities.allowSmallTalk &&
+            !formData.capabilities.collectEmail
+          ) {
+            errors.push('At least one capability must be enabled (tools, small talk, or email collection)');
+          }
+        }
+
+        if (step === 'compliance') {
+          // At least one disclosure should be present
+          if (formData.compliance.disclosures.length === 0) {
+            errors.push('At least one disclosure is required');
+          }
+        }
+
+        if (step === 'persona') {
+          // Persona is always valid (has defaults)
+          if (formData.persona.language.length === 0) {
+            errors.push('At least one language must be selected');
+          }
+        }
+
+        if (step === 'knowledge') {
+          // Knowledge base is optional but if FAQs exist, they must be valid
+          if (formData.knowledgeBase.faqs.length > 0) {
+            const invalidFaq = formData.knowledgeBase.faqs.some((faq) => !faq.question || !faq.answer);
+            if (invalidFaq) {
+              errors.push('All FAQs must have both question and answer');
+            }
+          }
+        }
+
+        if (step === 'preview') {
+          // Preview is valid if we have generated valid prompt and config
+          if (livePreview.prompt.length === 0) {
+            errors.push('Unable to generate preview. Check form for errors.');
+          }
+        }
+
+        // Update errors or clear them
+        if (errors.length > 0) {
+          setValidationErrors((prev) => ({ ...prev, [step]: errors }));
+          return false;
+        } else {
+          setValidationErrors((prev) => {
+            const next = { ...prev };
+            delete next[step];
+            return next;
+          });
+          return true;
+        }
       } catch (err) {
         setValidationErrors({ [step]: [(err as Error).message] });
         return false;
       }
     },
-    [formData]
+    [formData, livePreview]
   );
 
   // Navigate to next step
@@ -208,6 +317,7 @@ export function useAssistantWizard(): AssistantWizardState & AssistantWizardActi
     completedSteps,
     formData,
     isDirty,
+    isHydrated, // Indicates localStorage has been loaded
     validationErrors,
     livePreview,
 
