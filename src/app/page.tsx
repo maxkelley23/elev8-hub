@@ -7,6 +7,7 @@ export default function Home() {
   const financeTools = getToolsByCategory('finance');
   const marketingTools = getToolsByCategory('marketing');
   const creativeTools = getToolsByCategory('creative');
+  const productivityTools = getToolsByCategory('productivity');
   const libraryTools = getToolsByCategory('library');
 
   return (
@@ -48,6 +49,18 @@ export default function Home() {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Creative Studio</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {creativeTools.map((tool) => (
+              <ToolCard key={tool.id} tool={tool} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Productivity Tools */}
+      {productivityTools.length > 0 && (
+        <section className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Productivity</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {productivityTools.map((tool) => (
               <ToolCard key={tool.id} tool={tool} />
             ))}
           </div>
